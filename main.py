@@ -5,6 +5,7 @@ from aiogram.enums import ParseMode
 from config_reader import config
 from handlers import user_commands
 
+
 async def main():
 
     bot = Bot(config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -12,7 +13,6 @@ async def main():
 
     dp.include_routers(
         user_commands.router,
-        
     )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
