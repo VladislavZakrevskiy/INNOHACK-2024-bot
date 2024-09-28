@@ -3,7 +3,8 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
 from config_reader import config
-from handlers import user_commands
+from handlers import user_commands, bot_messages
+
 
 
 async def main():
@@ -13,6 +14,8 @@ async def main():
 
     dp.include_routers(
         user_commands.router,
+        bot_messages.router
+
     )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

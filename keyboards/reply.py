@@ -8,16 +8,14 @@ main = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text="Мои задачи"),
-            KeyboardButton(text="Ссылки"),
         ],
         [
-            KeyboardButton(text="Калькулятор"),
-            KeyboardButton(text="Спец кнопки"),
+            KeyboardButton(text="Сменить пропуск"),
         ]
     ],
     resize_keyboard=True,
     one_time_keyboard=True,
-    input_field_placeholder="дэдлайны горят",
+    input_field_placeholder="Береги рабочую мину",
     
 )
 
