@@ -51,8 +51,16 @@ async def list_projects(telegram_id, message):
                 """SELECT full_name FROM users WHERE id = %s;""", (task_owner_id,)
                 )
                 task_owner_fullname = users_cursor.fetchone()
-                print(task_deadline_date.time())
-            await message.answer(f"🛠️<b>{task_title}</b>:\n\n📅До {task_deadline_date.date()}\n\n💬{task_description}\n🗣️Руководитель: <b>{task_owner_fullname[0]}</b>")
+                day = task_deadline_date.date().day
+                month = task_deadline_date.date().month
+                hour = task_deadline_date.time().hour
+                minute = task_deadline_date.time().minute
+                differense = datetime.datetime.now() - task_deadline_date
+                if differense.days == 0:
+                    deadline_info = "⚠️СЕГОДНЯ⚠️"
+                else:
+                    deadline_info = f"⚠️Осталось дней: {differense.days}⚠️"
+            await message.answer(f"🛠️<b>{task_title}</b>:\n\n📅Дэдлайн: {day}.{month} до {hour}:{minute}  {deadline_info}\n\n💬{task_description}\n🗣️Руководитель: <b>{task_owner_fullname[0]}</b>")
 
     
     projects_connection.close()
