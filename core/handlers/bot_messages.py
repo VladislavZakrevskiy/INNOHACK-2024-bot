@@ -36,17 +36,17 @@ async def check_deadline(bot: Bot):
             if id != None:
                 await db.update_tasks_data(id, user_connection, project_connection)
                 db.data = sorted(db.data, key=lambda x: x[1][0][-2], reverse=True)
-                print(db.data)
-                if db.data != []:
-                    
+                if db.data != None:  
                     for i in range(min(len(db.data), db.data_check_count)):
-                        diff = datetime.now() - db.data[i][1][0][-2]
-                        diff = diff.total_second()
+                        diff = db.data[i][1][0][-2] - datetime.now()
+                        diff = diff.total_seconds()
                         hours = divmod(diff, 3600)[0]
                         print(hours)
-                        if hours <= db.data_time_to_end:
-                            await print_task(db.data[i], message=None, num_task=i, id=telegram_id, bot=bot)
-
+                        if 0 <= hours <= db.data_time_to_end:
+                            await bot.send_message(id, text="🔔Напоминаю о задаче товарищ!🔔")
+                            await print_task(db.data[i], message=None, num_task=i, id=id, bot=bot)
+    await db.disconnect(user_connection)
+    await db.disconnect(project_connection)
 
 async def get_user_info(message):
     connection = await db.connect_user()
@@ -61,23 +61,22 @@ async def get_user_info(message):
 async def print_task(el: tuple, message: Message = None, num_task: int = 0, id: str = None, bot: Bot = None):
     task = el[1]
     day_left = task[0][-1]
-    if day_left == "None" or day_left >= 0:
-        if day_left == "None":
-            deadline_data = f"✅Нет дэдлайна✅"
-        elif int(day_left) == 0:
-            deadline_data = "⚠️СЕГОДНЯ⚠️"
-        elif int(day_left) > 0:
-            deadline_data = f"⚠️Осталось дней: {day_left}⚠️"
-        elif int(day_left) == "None":
-            deadline_data = f"✅Нет дэдлайна✅"
-        if message != None:
-            await message.answer(f"🛠️<b>{task[1]}</b>:\n\n📅Дэдлайн: {task[0][1]}.{task[0][2]} до {task[0][3]}:{task[0][4]}  {deadline_data}\n\n💬{task[3]}\n\n🗣️Руководитель: <b>{task[2][0]}</b>", reply_markup=inline.get_more_inline_keyboard(num_task=num_task))
-        else:
-            await bot.send_message(f"🛠️<b>{task[1]}</b>:\n\n📅Дэдлайн: {task[0][1]}.{task[0][2]} до {task[0][3]}:{task[0][4]}  {deadline_data}\n\n💬{task[3]}\n\n🗣️Руководитель: <b>{task[2][0]}</b>", reply_markup=inline.get_more_inline_keyboard(num_task=num_task))
+    deadline_data = ''
+    if day_left == "None":
+        deadline_data = f"✅Нет дэдлайна✅"
+    elif int(day_left) == 0:
+        deadline_data = "⚠️СЕГОДНЯ⚠️"
+    elif int(day_left) > 0:
+        deadline_data = f"⚠️Осталось дней: {day_left}⚠️"
+    
+    if message != None and deadline_data != '':
+        await message.answer(f"🛠️<b>{task[1]}</b>:\n\n📅Дэдлайн: {str(task[0][1]).zfill(2)}.{str(task[0][2]).zfill(2)} до {str(task[0][3]).zfill(2)}:{str(task[0][4]).zfill(2)}  {deadline_data}\n\n💬{task[3]}\n\n🗣️Руководитель: <b>{task[2][0]}</b>", reply_markup=inline.get_more_inline_keyboard(num_task=num_task))
+    elif bot != None and deadline_data != '':
+        await bot.send_message(id, text=f"🛠️<b>{task[1]}</b>:\n\n📅Дэдлайн: {str(task[0][1]).zfill(2)}.{str(task[0][2]).zfill(2)} до {str(task[0][3]).zfill(2)}:{str(task[0][4]).zfill(2)}  {deadline_data}\n\n💬{task[3]}\n\n🗣️Руководитель: <b>{task[2][0]}</b>", reply_markup=inline.get_more_inline_keyboard(num_task=num_task))
 
 
 async def print_tasks(data: list, message: Message):
-    db.data = sorted(db.data, lambda x: x[1][-2], reverse=True)
+    db.data = sorted(db.data, key=lambda x: x[1][-2], reverse=True)
     user_fullname = data[0][0]
     await message.answer(f"{user_fullname}, вот твои текущие задачи⬇️", reply_markup=reply.main)
     for i, el in enumerate(data):
@@ -125,10 +124,13 @@ async def main_menu(message: Message, state: FSMContext):
 
         await db.update_tasks_data(str(message.from_user.id), user_connection, project_connection)
 
+        await db.disconnect(user_connection)
+        await db.disconnect(project_connection)
+
         if db.data == []:
             await message.answer("У тебя нет задач", reply_markup=reply.main)
         else:
-            await print_task(db.data, message)
+            await print_tasks(db.data, message)
     elif msg == "👤сменить пропуск":
         await state.set_state(Start.login)
         await message.answer("Отправьте новый <b>Пропуск</b>")

@@ -12,8 +12,8 @@ class DataBase():
         self.project_db = project_db
         self.port = port
         self.data = []
-        self.data_check_hour = 2
-        self.data_check_minute = 21
+        self.data_check_hour = 10
+        self.data_check_minute = 5
         self.data_check_count = 1
         self.data_time_to_end = 36
 
@@ -66,7 +66,7 @@ class DataBase():
                     month = task_deadline_date.date().month
                     hour = task_deadline_date.time().hour
                     minute = task_deadline_date.time().minute
-                    day_left = (datetime.datetime.now() - task_deadline_date).days
+                    day_left = (task_deadline_date - datetime.datetime.now()).days
                 else:
                     day_left = "None"
                     task_create_date, day, month, hour, minute, = 0, 0, 0, 0, 0
@@ -87,10 +87,9 @@ class DataBase():
                 # получение информации о проекте, в котором находится space
 
                 cursor.execute(
-                """SELECT owner_id, description, image, name FROM project WHERE id = %s;""", (project_id,)
+                """SELECT owner_id, description, name FROM project WHERE id = %s;""", (project_id,)
                 )
-                (project_owner_id, project_description, project_image, project_name) = cursor.fetchone()
-                print(project_image)
+                (project_owner_id, project_description, project_name) = cursor.fetchone()
 
                 #USER DATABASE Получение имен владельцев
 
@@ -109,7 +108,7 @@ class DataBase():
                     project_owner_fullname = users_cursor.fetchone()
 
                     # запаковываем всю информацию о задаче
-
+                    project_image = None
                     self.data.append((
                         user_fullname,
                         ((task_create_date, day, month, hour, minute, task_deadline_date, day_left), task_title, task_owner_fullname, task_description, task_id),
@@ -119,9 +118,6 @@ class DataBase():
                         
                         ))
         
-        projects_connection.close()
-        users_connection.close()
-        print("[INFO] PostgreSQL connection closed")
 
     async def get_user(self, telegram_id, connection):
         with connection.cursor() as cursor:
