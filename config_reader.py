@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     user_db_name: SecretStr
     projects_db_name: SecretStr
     port: SecretStr
+    site_url: SecretStr
     model_config: SettingsConfigDict = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8"
